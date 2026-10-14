@@ -1,0 +1,34 @@
+{
+  "name": "jev-router",
+  "displayName": "Jev Router",
+  "description": "Choose low-cost available GitHub Copilot models through JEV in the native chat model picker.",
+  "publisher": "local-jev",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "vscode": "^1.140.0" },
+  "categories": ["AI", "Chat"],
+  "main": "./out/extension.cjs",
+  "activationEvents": ["onLanguageModelChatProvider:jev-router"],
+  "contributes": {
+    "languageModelChatProviders": [{
+      "vendor": "jev-router",
+      "displayName": "Jev Router",
+      "managementCommand": "jevRouter.configure"
+    }],
+    "commands": [
+      { "command": "jevRouter.configure", "title": "Jev Router: Configure .env" },
+      { "command": "jevRouter.refresh", "title": "Jev Router: Refresh Models" }
+    ],
+    "configuration": {
+      "title": "Jev Router",
+      "properties": {
+        "jevRouter.envFile": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "description": "Absolute path to your local .env containing JEV_API_KEY. The key is never stored in editor settings."
+        }
+      }
+    }
+  }
+}
