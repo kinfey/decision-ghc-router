@@ -26,7 +26,7 @@
           "type": "string",
           "default": "",
           "scope": "application",
-          "description": "Absolute path to your local .env containing JEV_API_KEY. The key is never stored in editor settings."
+          "description": "Absolute path to your local .env containing TypeSafe or Azure Decision configuration and credentials. Keys are never stored in editor settings."
         }
       }
     }

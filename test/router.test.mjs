@@ -221,6 +221,8 @@ test("JEV keys and TypeSafe settings never reach the native Copilot child", () =
   assert.deepEqual(copilotEnvironment({
     PATH: "/bin", GITHUB_TOKEN: "test-github", JEV_API_KEY: "test-jev",
     TYPESAFE_API_KEY: "test-typesafe", TYPESAFE_BASE_URL: "https://example.invalid",
+    AZURE_DECISION_API_KEY: "test-azure", AZURE_DECISION_ENDPOINT: "https://example.invalid",
+    AZURE_DECISION_MODEL: "Decision-1",
   }), { PATH: "/bin", GITHUB_TOKEN: "test-github" });
   assert.equal(safeError(new Error("bad test-key apikey_abc_def"), { JEV_API_KEY: "test-key" }),
     "bad [REDACTED] [REDACTED]");
@@ -228,10 +230,12 @@ test("JEV keys and TypeSafe settings never reach the native Copilot child", () =
 
 test("native execution inherits cwd, strips JEV secrets and preserves the exit code", async () => {
   const exit = await launchCopilot(process.execPath, ["--input-type=module", "-e", `
-    if (process.env.JEV_API_KEY || process.env.TYPESAFE_API_KEY) process.exit(99);
+    if (process.env.JEV_API_KEY || process.env.TYPESAFE_API_KEY || process.env.AZURE_DECISION_API_KEY) process.exit(99);
     if (process.cwd() !== ${JSON.stringify(process.cwd())}) process.exit(98);
     process.exit(7);
-  `], { cwd: process.cwd(), env: { ...process.env, JEV_API_KEY: "test-key", TYPESAFE_API_KEY: "test-key" } });
+  `], { cwd: process.cwd(), env: {
+    ...process.env, JEV_API_KEY: "test-key", TYPESAFE_API_KEY: "test-key", AZURE_DECISION_API_KEY: "test-azure",
+  } });
   assert.equal(exit, 7);
 });
 
@@ -247,13 +251,17 @@ test("full CLI routes without launching, then launches the selected exact native
   t.mock.method(console, "error", () => {});
   const oldPath = process.env.COPILOT_CLI_PATH;
   const oldKey = process.env.JEV_API_KEY;
+  const oldProvider = process.env.JEV_PROVIDER;
   process.env.COPILOT_CLI_PATH = process.execPath;
   process.env.JEV_API_KEY = "test-key";
+  process.env.JEV_PROVIDER = "typesafe";
   t.after(() => {
     if (oldPath === undefined) delete process.env.COPILOT_CLI_PATH;
     else process.env.COPILOT_CLI_PATH = oldPath;
     if (oldKey === undefined) delete process.env.JEV_API_KEY;
     else process.env.JEV_API_KEY = oldKey;
+    if (oldProvider === undefined) delete process.env.JEV_PROVIDER;
+    else process.env.JEV_PROVIDER = oldProvider;
   });
   const dependencies = {
     discoverModels: async () => catalog,

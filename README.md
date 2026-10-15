@@ -4,6 +4,8 @@
 
 **JEV decides; GitHub Copilot executes.** Select **Jev Router** in the native Copilot CLI `/model` menu or **jev-router** in the VS Code / Insiders chat model picker. Alternatively, route the initial task before launching the CLI.
 
+Classification supports both the **TypeSafe API** and **Azure Decision-1**. The selected backend only chooses a model; task execution still uses your available GitHub Copilot models.
+
 The router chooses from models available to the signed-in account. It does not change login credentials or the global default model, and it does not make an additional Copilot request to classify the task.
 
 ```text
@@ -158,6 +160,7 @@ CLI token counts are **user estimates**, not tokenizer measurements or enforced 
 ## Environment configuration
 
 ```dotenv
+JEV_PROVIDER=typesafe
 JEV_API_KEY=your_jev_api_key
 COPILOT_CLI_PATH=copilot
 JEV_INPUT_TOKENS=10000
@@ -165,13 +168,26 @@ JEV_OUTPUT_TOKENS=2000
 JEV_FALLBACK_CHEAPEST=0
 ```
 
+To classify through Azure instead, set the following in your local `.env`:
+
+```dotenv
+JEV_PROVIDER=azure
+AZURE_DECISION_ENDPOINT=https://<your-resource>.services.ai.azure.com/providers/microsoft/v1/systemone
+AZURE_DECISION_API_KEY=your_azure_api_key
+AZURE_DECISION_MODEL=Decision-1
+```
+
+Use your own endpoint and deployment name. `Decision-1` is the default deployment name. Azure requests post the same typed `state`/`questions` choice payload plus `model` to the exact configured endpoint, using the `api-key` header. HTTPS is required and redirects are rejected. Azure credentials are separate from TypeSafe credentials; changing providers does not silently fall back to the other backend. With no `JEV_PROVIDER`, existing TypeSafe configuration remains the default.
+
+This setting applies to startup routing, the native CLI extension, and both editor extensions. Restart CLI sessions or reload editor windows after updating installed extensions. Azure classifier usage is billed separately from Copilot execution, just as TypeSafe classifier usage is.
+
 CLI precedence is process environment, then the target project's `.env` (selectable with `-C` in startup mode), then the launcher's `.env`. `TYPESAFE_API_KEY` is also accepted.
 
 The editor reads `jevRouter.envFile`, defaulting to the build project's `.env` path. Process environment values override that file. Editor routing measures input tokens and uses `JEV_INPUT_TOKENS` as an estimate floor; estimated output must not exceed 16,000 tokens.
 
 JEV requests have a four-second client timeout and a five-second cancellation deadline, with no automatic retries. Timeouts, invalid choices, and confidence below 0.3 fail closed. CLI modes can explicitly enable `JEV_FALLBACK_CHEAPEST=1`, which warns and selects the lowest-priced candidate **without guaranteeing task suitability**. Editor routing does not use this fallback and stops on routing failures.
 
-`.env` is ignored by Git; do not commit, share, or expose it in frontend code. The CLI launcher strips JEV/TypeSafe environment variables from the native child process, and errors are redacted. The native extension reads local configuration; environment overrides explicitly request SDK access to `JEV_API_KEY` / `TYPESAFE_API_KEY`, which may require approval.
+`.env` is ignored by Git; do not commit, share, or expose it in frontend code. The CLI launcher strips JEV/TypeSafe and `AZURE_DECISION_*` environment variables from the native child process, and errors are redacted. The native extension reads local configuration; environment overrides explicitly request SDK access to classifier configuration and credentials, which may require approval.
 
 Native Copilot file tools can still read a working-directory `.env`; this is not a filesystem isolation mechanism. Do not ask tools to read or upload secret files. Rotate keys previously exposed in chat or public locations.
 
@@ -179,7 +195,7 @@ Native Copilot file tools can still read a working-directory `.env`; this is not
 
 The native CLI picker routes each new user turn. Startup routing makes one decision at launch. Switching to a specific model invalidates the relevance of the previous model's estimate.
 
-CLI automatic routing sends the current task text, candidate model names/prices, and token estimates to `https://api.typesafe.ai`. It does not automatically read and upload repository files or full history, and it does not send GitHub credentials. Sensitive content placed directly in the task will nevertheless be sent.
+CLI automatic routing sends the current task text, candidate model names/prices, and token estimates to the selected decision backend: `https://api.typesafe.ai` for TypeSafe, or your configured Azure endpoint. It does not automatically read and upload repository files or full history, and it does not send GitHub credentials. Sensitive content placed directly in the task will nevertheless be sent.
 
 Native CLI picker requests go through the local proxy to the SDK-provided GitHub inference endpoint. Editor execution uses the public Copilot language-model API, sending JEV only the isolated task or explicitly entered summary.
 

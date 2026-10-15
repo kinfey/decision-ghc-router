@@ -1,13 +1,17 @@
 # Jev Router
 
 Adds **jev-router** to the native VS Code and VS Code Insiders chat model picker.
+Set `JEV_PROVIDER=typesafe` (default) or `JEV_PROVIDER=azure` in your selected
+`.env`. Azure requires `AZURE_DECISION_ENDPOINT` (the full HTTPS systemone URL),
+`AZURE_DECISION_API_KEY`, and optionally `AZURE_DECISION_MODEL` (default:
+`Decision-1`). Both backends classify the task; Copilot still executes it.
 JEV chooses a low-cost sufficient model from the Copilot models available to the
 account signed in to that editor. Execution uses the editor's public Copilot
 language-model API; no CLI inference credentials are copied.
 
 After installation, reload the editor window. If necessary, open **Manage Models**
 in the chat model picker and enable `jev-router` under **Jev Router**.
-Run **Jev Router: Configure .env** to select a local file containing `JEV_API_KEY`.
+Run **Jev Router: Configure .env** to select a local file containing your chosen backend's credentials.
 Only the file path is saved in settings. The locally built package defaults to the
 build project's `.env`; it never includes that file or its key.
 

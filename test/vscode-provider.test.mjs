@@ -14,11 +14,12 @@ const bundled = await build({
   external: ["vscode", "@typesafe-ai/sdk"],
 });
 
-async function harness(t) {
+async function harness(t, providerName = "typesafe") {
   const directory = await mkdtemp(join(tmpdir(), "jev-editor-test-"));
   t.after(() => rm(directory, { recursive: true }));
   const envFile = join(directory, ".env");
-  await writeFile(envFile, "JEV_API_KEY=fixture-secret-key\nJEV_INPUT_TOKENS=10000\n");
+  await writeFile(envFile, `JEV_PROVIDER=${providerName}\nJEV_API_KEY=fixture-secret-key\nJEV_INPUT_TOKENS=10000\n` +
+    "AZURE_DECISION_ENDPOINT=https://fixture.services.ai.azure.com/providers/microsoft/v1/systemone\nAZURE_DECISION_API_KEY=azure-fixture-key\nAZURE_DECISION_MODEL=Decision-1\n");
   class TextPart { constructor(value) { this.value = value; } }
   class ToolCallPart { constructor(callId, name, input) { Object.assign(this, { callId, name, input }); } }
   class ToolResultPart { constructor(callId, content) { Object.assign(this, { callId, content }); } }
@@ -58,9 +59,10 @@ async function harness(t) {
     ] },
   };
   const sdk = {
-    choice: (question, choices) => ({ question, choices }),
+    choice: (instructions, criteria) => ({ type: "choice", instructions, criteria }),
     TypeSafeClient: class {
       async systemOne(request) {
+        assert.equal(providerName, "typesafe", "Azure must not call the TypeSafe backend");
         decisions.push(request);
         return { answers: { model: { choice: request.state.available_models[0].id, confidence: 0.95 } } };
       }
@@ -71,11 +73,22 @@ async function harness(t) {
     module, exports: module.exports,
     require: (name) => name === "vscode" ? mockVscode : name === "@typesafe-ai/sdk" ? sdk : require(name),
     __JEV_DEFAULT_ENV_FILE__: envFile,
-    process: { env: {} }, Buffer, AbortController, AbortSignal, Error,
-    fetch: async () => ({
-      ok: true,
-      text: async () => "Prices per 1 million tokens\n| Model | Input | Output |\n| --- | --- | --- |\n| GPT-6 Luna | $0.10 | $0.50 |\n| GPT-6 Sol | $1.00 | $5.00 |",
-    }),
+    process: { env: {} }, Buffer, AbortController, AbortSignal, Error, URL,
+    fetch: async (url, options) => {
+      if (url.endsWith("/systemone")) {
+        assert.equal(options.headers["api-key"], "azure-fixture-key");
+        const request = JSON.parse(options.body);
+        assert.equal(request.model, "Decision-1");
+        decisions.push(request);
+        return { ok: true, json: async () => ({
+          answers: { model: { choice: request.state.available_models[0].id, confidence: 0.95 } },
+        }) };
+      }
+      return {
+        ok: true,
+        text: async () => "Prices per 1 million tokens\n| Model | Input | Output |\n| --- | --- | --- |\n| GPT-6 Luna | $0.10 | $0.50 |\n| GPT-6 Sol | $1.00 | $5.00 |",
+      };
+    },
   });
   const provider = new module.exports.JevProvider({ appendLine: (line) => logs.push(line) });
   t.after(() => provider.dispose());
@@ -131,4 +144,19 @@ test("editor cancellation blocks routing and inference", async (t) => {
     h.model, [], {}, { report() {} }, { ...h.token, isCancellationRequested: true }), h.CancellationError);
   assert.equal(h.decisions.length, 0);
   assert.equal(h.requests.length, 0);
+});
+
+test("editor Azure routing delegates to native Copilot and reuses the decision for tool results", async (t) => {
+  const h = await harness(t, "azure");
+  const user = { role: 1, content: [new h.TextPart("<userRequest>Say hello</userRequest>")] };
+  const progress = { report() {} };
+  await h.provider.provideLanguageModelChatResponse(h.model, [user], {}, progress, h.token);
+  assert.equal(h.decisions.length, 1);
+  assert.equal(h.requests[0].model, "opaque-cheap");
+  assert.ok(h.logs[0].includes("azure-decision"));
+  const result = { role: 1, content: [new h.ToolResultPart("call-unique", [])] };
+  await h.provider.provideLanguageModelChatResponse(h.model, [user, result], {}, progress, h.token);
+  assert.equal(h.decisions.length, 1);
+  assert.equal(h.requests.length, 2);
+  assert.ok(h.logs.every((line) => !line.includes("azure-fixture-key")));
 });

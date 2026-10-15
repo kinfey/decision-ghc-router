@@ -6,7 +6,10 @@ export async function startExtension() {
   let turns;
   let proxy;
   const session = await joinSession({
-    requestedEnvironmentVariables: ["JEV_API_KEY", "TYPESAFE_API_KEY"],
+    requestedEnvironmentVariables: [
+      "JEV_PROVIDER", "JEV_API_KEY", "TYPESAFE_API_KEY",
+      "AZURE_DECISION_ENDPOINT", "AZURE_DECISION_API_KEY", "AZURE_DECISION_MODEL",
+    ],
     hooks: {
       onUserPromptSubmitted: async (input) => {
         if (!turns) throw new Error("Jev Router is still initializing.");

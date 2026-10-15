@@ -42,5 +42,6 @@ export async function executablePath(command, env, cwd) {
 }
 
 export function copilotEnvironment(env) {
-  return Object.fromEntries(Object.entries(env).filter(([key]) => !key.startsWith("JEV_") && !key.startsWith("TYPESAFE_")));
+  return Object.fromEntries(Object.entries(env).filter(([key]) =>
+    !key.startsWith("JEV_") && !key.startsWith("TYPESAFE_") && !key.startsWith("AZURE_DECISION_")));
 }

@@ -4,6 +4,8 @@
 
 **JEV 判断，GitHub Copilot 执行**。支持 CLI 原生 `/model` 菜单中的 **Jev Router**、VS Code / Insiders 聊天模型菜单中的 **jev-router**，以及启动前一次性选模。不修改登录凭据或全局默认模型，不额外调用 Copilot 做分类。
 
+判断后端同时支持 **TypeSafe API** 和 **Azure Decision-1**。所选后端仅负责选模，任务仍由账号可用的 GitHub Copilot 模型执行。
+
 ```text
 原生 /model -> Jev Router -> 每个新用户回合调用 JEV
                            -> 本地回环代理 -> 账号允许的 GitHub 推理模型
@@ -142,6 +144,7 @@ npm start -- route "你的大上下文任务" \
 ## `.env`
 
 ```dotenv
+JEV_PROVIDER=typesafe
 JEV_API_KEY=your_jev_api_key
 COPILOT_CLI_PATH=copilot
 JEV_INPUT_TOKENS=10000
@@ -149,17 +152,30 @@ JEV_OUTPUT_TOKENS=2000
 JEV_FALLBACK_CHEAPEST=0
 ```
 
+使用 Azure 判断后端时，在本地 `.env` 设置：
+
+```dotenv
+JEV_PROVIDER=azure
+AZURE_DECISION_ENDPOINT=https://<your-resource>.services.ai.azure.com/providers/microsoft/v1/systemone
+AZURE_DECISION_API_KEY=your_azure_api_key
+AZURE_DECISION_MODEL=Decision-1
+```
+
+请填写自己的端点和模型部署名；默认部署名为 `Decision-1`。Azure 请求向配置的完整端点发送同样的类型化 `state` / `questions` 选择题结构，并添加 `model`，通过 `api-key` 请求头认证。必须使用 HTTPS，且禁止重定向。Azure 和 TypeSafe 密钥独立，切换后端不会静默回退到另一服务。未设置 `JEV_PROVIDER` 时仍默认使用现有 TypeSafe 配置。
+
+该配置同时适用于启动前选模、CLI 原生菜单扩展和两个编辑器扩展。更新已安装扩展后，请重启 CLI 或重新加载编辑器窗口。Azure 判断服务与 Copilot 执行分别计费，TypeSafe 判断服务亦如此。
+
 CLI 优先级：进程环境变量 > 目标项目的 `.env`（启动前模式可通过 `-C` 指定）> 启动器目录的 `.env`。同时兼容 `TYPESAFE_API_KEY`。编辑器读取 `jevRouter.envFile` 指定的文件，未配置时使用构建项目的 `.env` 路径；进程环境变量优先于该文件。编辑器模式会统计输入 token，并将 `JEV_INPUT_TOKENS` 用作估算下限，输出估算不得超过 16,000 token。
 
 JEV 单次请求超时 4 秒，总取消信号 5 秒，不自动重试，避免重复费用。超时、无效选择或置信度低于 0.3 时默认报错退出，不擅自启动高价模型。CLI 模式可显式设置 `JEV_FALLBACK_CHEAPEST=1`：此时会发出警告并使用最低估算价模型，但**不保证能胜任任务**。编辑器模式不使用此降级选项，路由失败时停止执行。
 
-`.env` 已被 `.gitignore` 排除；不要提交、分享或放入前端。启动器会从 Copilot 子进程中剥离 JEV/TypeSafe 环境变量，错误信息会脱敏。扩展从配置文件读取密钥；若使用环境变量覆盖密钥，会通过 SDK 显式请求访问 `JEV_API_KEY` / `TYPESAFE_API_KEY`，原生 CLI 可能要求批准。原生 Copilot 的文件工具仍有可能读取工作目录中的 `.env`；这不是文件访问隔离方案。不要在任务里要求读取或上传密钥文件。已在聊天或公开位置暴露过的 key 建议轮换。
+`.env` 已被 `.gitignore` 排除；不要提交、分享或放入前端。启动器会从 Copilot 子进程中剥离 JEV/TypeSafe 和 `AZURE_DECISION_*` 环境变量，错误信息会脱敏。扩展从配置文件读取密钥；若使用环境变量覆盖配置，会通过 SDK 显式请求访问判断后端配置及密钥，原生 CLI 可能要求批准。原生 Copilot 的文件工具仍有可能读取工作目录中的 `.env`；这不是文件访问隔离方案。不要在任务里要求读取或上传密钥文件。已在聊天或公开位置暴露过的 key 建议轮换。
 
 ## 边界
 
 原生菜单模式是真实注册的 `Jev Router` 提供方，按新用户回合路由；启动前模式仍然只在启动时路由一次，后续不自动重新判断。手动切换到具体模型后，之前的估算不再代表新模型费用。
 
-CLI 自动路由会向 `https://api.typesafe.ai` 发送当前用户回合的原始任务文本、候选模型名称/价格及 token 估算，不自动读取并发送仓库文件或完整历史，也不发送 GitHub 凭据；若任务自身包含敏感内容，这些内容也会发送。CLI 原生菜单模式通过本地代理将完整模型请求发送给 SDK 指定的 GitHub 推理端点。编辑器模式通过公开 Copilot 语言模型 API 执行，向 JEV 发送可提取的任务或用户明确输入的摘要。`route` 同样会调用 JEV，可能产生 JEV 费用；`models` 和手动选择具体模型不调用 JEV。
+CLI 自动路由会向所选判断后端发送当前用户回合的原始任务文本、候选模型名称/价格及 token 估算：TypeSafe 使用 `https://api.typesafe.ai`，Azure 使用配置的端点。不自动读取并发送仓库文件或完整历史，也不发送 GitHub 凭据；若任务自身包含敏感内容，这些内容也会发送。CLI 原生菜单模式通过本地代理将完整模型请求发送给 SDK 指定的 GitHub 推理端点。编辑器模式通过公开 Copilot 语言模型 API 执行，向判断后端发送可提取的任务或用户明确输入的摘要。`route` 同样会调用判断服务，可能产生费用；`models` 和手动选择具体模型不调用判断服务。
 
 ## 开发
 

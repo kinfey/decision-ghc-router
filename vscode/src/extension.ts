@@ -189,10 +189,10 @@ export class JevProvider implements vscode.LanguageModelChatProvider, vscode.Dis
         if (!candidates.length) throw new Error("No available Copilot model has a matching public price and sufficient default context.");
         const decision = await askJev({
           prompt: summary, models: candidates, estimates: { outputTokens, context: "default" },
-          apiKey: env.JEV_API_KEY || env.TYPESAFE_API_KEY, client: undefined, signal: abort.signal,
+          apiKey: env.JEV_API_KEY || env.TYPESAFE_API_KEY, client: undefined, signal: abort.signal, env,
         });
         route = { modelId: decision.id, estimatedUsd: decision.estimatedUsd };
-        this.output.appendLine(`JEV -> ${decision.id}; confidence ${decision.confidence.toFixed(2)}; estimated $${decision.estimatedUsd.toFixed(6)}. Public default prices exclude promotions and JEV fees.`);
+        this.output.appendLine(`JEV (${decision.reason}) -> ${decision.id}; confidence ${decision.confidence.toFixed(2)}; estimated $${decision.estimatedUsd.toFixed(6)}. Public default prices exclude promotions and classifier fees.`);
       }
       const target = available.find((entry) => entry.id === route.modelId);
       if (!target) throw new Error("The routed model is no longer available to this editor account. Start a new user turn.");
@@ -233,7 +233,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.lm.registerLanguageModelChatProvider("jev-router", provider),
     vscode.commands.registerCommand("jevRouter.configure", async () => {
       const selected = await vscode.window.showOpenDialog({
-        title: "Choose the .env containing JEV_API_KEY",
+        title: "Choose the .env containing TypeSafe or Azure Decision credentials",
         canSelectFiles: true, canSelectFolders: false, canSelectMany: false,
       });
       if (selected?.[0]) {

@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { copilotEnvironment, executablePath, loadEnvironment, positiveInteger, safeError } from "./config.mjs";
 import { discoverModels, pricedModels } from "./catalog.mjs";
-import { selectModel } from "./router.mjs";
+import { decisionConfiguration, selectModel } from "./router.mjs";
 
 export const help = `JEV -> native GitHub Copilot CLI (native /model extension or startup routing)
 
@@ -138,9 +138,9 @@ export async function main(argv, dependencies = {}) {
       finally { readline.close(); }
       if (!options.task.trim()) throw new Error("A nonempty task is required for automatic routing.");
     }
-    if (options.command !== "models" && !options.model &&
-        !env.JEV_API_KEY && !env.TYPESAFE_API_KEY && env.JEV_FALLBACK_CHEAPEST !== "1") {
-      throw new Error("JEV_API_KEY is missing. Add it to the local .env file.");
+    if (options.command !== "models" && !options.model && env.JEV_FALLBACK_CHEAPEST !== "1") {
+      const config = decisionConfiguration(env);
+      if (!config.apiKey) throw new Error(`${config.keyName} is missing. Add it to the local .env file.`);
     }
     const executable = await executablePath(env.COPILOT_CLI_PATH || "copilot", env, options.cwd);
     const catalog = await (dependencies.discoverModels ?? discoverModels)({ executable, cwd: options.cwd, env });
