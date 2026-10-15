@@ -1,6 +1,6 @@
 {
-  "name": "jev-router",
-  "displayName": "Jev Router",
+  "name": "desicion-router",
+  "displayName": "Desicion Router",
   "description": "Choose low-cost available GitHub Copilot models through JEV in the native chat model picker.",
   "publisher": "local-jev",
   "version": "0.1.0",
@@ -8,21 +8,21 @@
   "engines": { "vscode": "^1.140.0" },
   "categories": ["AI", "Chat"],
   "main": "./out/extension.cjs",
-  "activationEvents": ["onLanguageModelChatProvider:jev-router"],
+  "activationEvents": ["onLanguageModelChatProvider:desicion-router"],
   "contributes": {
     "languageModelChatProviders": [{
-      "vendor": "jev-router",
-      "displayName": "Jev Router",
-      "managementCommand": "jevRouter.configure"
+      "vendor": "desicion-router",
+      "displayName": "Desicion Router",
+      "managementCommand": "desicionRouter.configure"
     }],
     "commands": [
-      { "command": "jevRouter.configure", "title": "Jev Router: Configure .env" },
-      { "command": "jevRouter.refresh", "title": "Jev Router: Refresh Models" }
+      { "command": "desicionRouter.configure", "title": "Desicion Router: Configure .env" },
+      { "command": "desicionRouter.refresh", "title": "Desicion Router: Refresh Models" }
     ],
     "configuration": {
-      "title": "Jev Router",
+      "title": "Desicion Router",
       "properties": {
-        "jevRouter.envFile": {
+        "desicionRouter.envFile": {
           "type": "string",
           "default": "",
           "scope": "application",

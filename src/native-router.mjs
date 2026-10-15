@@ -6,14 +6,14 @@ import { normalizeCatalogModel, pricedModels } from "./catalog.mjs";
 import { positiveInteger, safeError } from "./config.mjs";
 import { selectModel } from "./router.mjs";
 
-export const routerId = "jev/router";
+export const routerId = "desicion/router";
 const maximumBodyBytes = 32 * 1024 * 1024;
 
 export function registration(baseUrl, apiKey) {
   return {
-    providers: [{ name: "jev", type: "openai", wireApi: "responses", baseUrl, apiKey }],
+    providers: [{ name: "desicion", type: "openai", wireApi: "responses", baseUrl, apiKey }],
     models: [{
-      provider: "jev", id: "router", name: "Jev Router", wireModel: "jev-router",
+      provider: "desicion", id: "router", name: "Desicion Router", wireModel: "desicion-router",
       maxPromptTokens: 128000, maxOutputTokens: 16000, maxContextWindowTokens: 144000,
       capabilities: { supports: { vision: false, toolCalls: true, reasoningEffort: false } },
     }],
@@ -22,7 +22,7 @@ export function registration(baseUrl, apiKey) {
 
 export function rewriteRequest(body, decision, model) {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Expected a Responses API request object.");
-  if (body.model !== "jev-router" && body.model !== routerId) throw new Error("Unknown router wire model.");
+  if (body.model !== "desicion-router" && body.model !== routerId) throw new Error("Unknown router wire model.");
   if (body.previous_response_id) throw new Error("Stateful previous_response_id is not supported; send the full conversation.");
   const rewritten = { ...body, model: decision.id };
   if (body.reasoning && !model.capabilities?.supports?.reasoningEffort) delete rewritten.reasoning;
@@ -45,7 +45,7 @@ export function createTurnRouter({ session, env, log, jevClient }) {
       turn = active;
       try {
         const context = current.contextTier ?? "default";
-        if (context !== "default") throw new Error("Jev Router currently supports the default context tier only.");
+        if (context !== "default") throw new Error("Desicion Router currently supports the default context tier only.");
         const estimates = {
           inputTokens: positiveInteger(env.JEV_INPUT_TOKENS ?? "10000", "input tokens"),
           outputTokens: positiveInteger(env.JEV_OUTPUT_TOKENS ?? "2000", "output tokens"),
@@ -66,11 +66,11 @@ export function createTurnRouter({ session, env, log, jevClient }) {
         }); estimated $${active.decision.estimatedUsd.toFixed(6)}. Tool continuations stay on this model.`, "info");
       } catch (error) {
         active.error = new Error(safeError(error, env));
-        await log(`Jev Router blocked this turn: ${active.error.message}`, "error");
+        await log(`Desicion Router blocked this turn: ${active.error.message}`, "error");
       }
     },
     current() {
-      if (!turn) throw new Error("No routed user turn is ready. Submit a new task after selecting Jev Router.");
+      if (!turn) throw new Error("No routed user turn is ready. Submit a new task after selecting Desicion Router.");
       if (turn.error) throw turn.error;
       if (!turn.decision || !turn.model) throw new Error("JEV routing has not finished.");
       return turn;
@@ -146,7 +146,7 @@ export async function startProxy({ session, turns, env, log, fetchImpl = fetch }
     } catch (error) {
       if (abort.signal.aborted) return;
       const message = safeError(error, env);
-      await log(`Jev Router inference failed: ${message}`, "error");
+      await log(`Desicion Router inference failed: ${message}`, "error");
       if (response.headersSent) response.destroy();
       else {
         response.writeHead(502, { "content-type": "application/json" });

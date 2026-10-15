@@ -1,15 +1,15 @@
-# Jev Router for GitHub Copilot
+# Desicion Router for GitHub Copilot
 
 [English](README.md) | [简体中文](README.zh.md)
 
-**JEV decides; GitHub Copilot executes.** Select **Jev Router** in the native Copilot CLI `/model` menu or **jev-router** in the VS Code / Insiders chat model picker. Alternatively, route the initial task before launching the CLI.
+**JEV decides; GitHub Copilot executes.** Select **Desicion Router** in the native Copilot CLI `/model` menu or **desicion-router** in the VS Code / Insiders chat model picker. Alternatively, route the initial task before launching the CLI.
 
 Classification supports both the **TypeSafe API** and **Azure Decision-1**. The selected backend only chooses a model; task execution still uses your available GitHub Copilot models.
 
 The router chooses from models available to the signed-in account. It does not change login credentials or the global default model, and it does not make an additional Copilot request to classify the task.
 
 ```text
-Native /model -> Jev Router -> JEV classifies each new user turn
+Native /model -> Desicion Router -> JEV classifies each new user turn
                            -> Local loopback proxy -> Available GitHub inference model
 Native /model -> Specific model -> Native Copilot execution, without JEV
 ```
@@ -30,7 +30,7 @@ chmod 600 .env
 
 Do not overwrite an existing `.env`, commit it, or share its credentials. The project `.npmrc` uses the Microsoft npm source at `https://packagefeedproxy.microsoft.io/npm/`.
 
-## Select Jev Router in the native CLI
+## Select Desicion Router in the native CLI
 
 Install the user-level extension; installation is repeatable:
 
@@ -41,25 +41,25 @@ npm run install:router
 npm run router
 ```
 
-Restart the CLI after installation. Approve the working-directory trust prompt and the **register hooks** permission requested by `user:jev-router`; otherwise, the model entry may not load.
+Restart the CLI after installation. Approve the working-directory trust prompt and the **register hooks** permission requested by `user:desicion-router`; otherwise, the model entry may not load.
 
-Enter `/model` and select **Jev Router**, or select it directly with `/model jev/router`. Its display name is `Jev Router` and its selection ID is `jev/router`. Each new routed user turn reports the execution model, for example:
+Enter `/model` and select **Desicion Router**, or select it directly with `/model desicion/router`. Its display name is `Desicion Router` and its selection ID is `desicion/router`. Each new routed user turn reports the execution model, for example:
 
 ```text
 JEV -> gpt-6-luna (jev, confidence 0.98); estimated $0.002000.
 ```
 
-The extension entry is installed at `~/.copilot/extensions/jev-router/extension.mjs`, or under `COPILOT_HOME` when configured. To use it in another project:
+The extension entry is installed at `~/.copilot/extensions/desicion-router/extension.mjs`, or under `COPILOT_HOME` when configured. To use it in another project:
 
 ```bash
 cd /path/to/project
 COPILOT_ALLOW_GET_PROVIDER_ENDPOINT=true copilot --experimental
-# Select Jev Router in /model.
+# Select Desicion Router in /model.
 ```
 
 `--experimental` enables the native extension interfaces. `COPILOT_ALLOW_GET_PROVIDER_ENDPOINT=true` explicitly allows the local proxy to obtain the current account's runtime inference endpoint and authentication through the SDK. No shell startup configuration is modified. Do not assume an ordinary `copilot` session has enabled these interfaces; an unavailable endpoint interface causes an explicit error, not a switch to another authentication method.
 
-The account's specific models remain selectable. Choosing one bypasses JEV; choosing `Jev Router` resumes routing. Tool continuations and subagent requests that inherit the router use the model selected for that turn, without repeating classification. Subagents that explicitly select a native model remain under native CLI control.
+The account's specific models remain selectable. Choosing one bypasses JEV; choosing `Desicion Router` resumes routing. Tool continuations and subagent requests that inherit the router use the model selected for that turn, without repeating classification. Subagents that explicitly select a native model remain under native CLI control.
 
 This integration supports default-context text and native tool calls for account models that expose `/responses`. It does not claim compatibility with images, Anthropic Messages API backends, or long context.
 
@@ -67,7 +67,7 @@ The proxy listens on a random `127.0.0.1` port and authenticates requests with r
 
 **Billing warning:** this is a custom provider entry, not a free official GitHub model. The CLI may display it as BYOK or with a zero multiplier. `/usage` and `--max-ai-credits` may not fully track GitHub AI credits consumed through the proxy. Actual execution-model charges still apply; use GitHub billing as the source of truth, not the displayed multiplier or a soft budget. The extension also displays a startup warning.
 
-The installed entry references this project's source and dependencies, so keep the project directory available. Reinstall with `npm run install:router` after moving it. To remove the managed entry, run `npm run uninstall:router` and restart Copilot. The installer does not overwrite an unrelated extension with the same name or change the global default model.
+The installed entry references this project's source and dependencies, so keep the project directory available. Reinstall with `npm run install:router` after moving it. Installation also removes this project's previous managed entry when upgrading to the new name, while preserving unrelated extensions. To remove the managed entry, run `npm run uninstall:router` and restart Copilot. The installer does not change the global default model.
 
 ## VS Code and VS Code Insiders
 
@@ -79,14 +79,14 @@ npm run package:vscode
 
 # macOS: install into each editor separately.
 "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" \
-  --install-extension "$PWD/jev-router.vsix" --force
+  --install-extension "$PWD/desicion-router.vsix" --force
 "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/bin/code" \
-  --install-extension "$PWD/jev-router.vsix" --force
+  --install-extension "$PWD/desicion-router.vsix" --force
 ```
 
-Run **Developer: Reload Window** in each editor, then select **jev-router** in the chat model picker. If it is hidden, enable **Jev Router / jev-router** through **Manage Models**.
+Run **Developer: Reload Window** in each editor, then select **desicion-router** in the chat model picker. If it is hidden, enable **Desicion Router / desicion-router** through **Manage Models**.
 
-Run **Jev Router: Configure .env** to choose the local file containing `JEV_API_KEY`. Settings store only its path, not the key. A locally built package defaults to the build project's `.env` path; the VSIX never includes that file. Reconfigure the path after moving the project.
+Run **Desicion Router: Configure .env** to choose the local file containing your TypeSafe or Azure credentials. Settings store only its path, not the key. The extension retains compatibility with the previous `.env` path setting. A locally built package defaults to the build project's `.env` path; the VSIX never includes that file. Reconfigure the path after moving the project. When upgrading, uninstall the previous editor extension after installing the renamed extension to avoid duplicate model entries.
 
 Approve Copilot language-model access when the editor requests it. Candidates come from that editor's signed-in account through `vscode.lm.selectChatModels({ vendor: "copilot" })`; the CLI and editor are not assumed to use the same account.
 
@@ -96,7 +96,7 @@ JEV receives the task from an unambiguous `<userRequest>` wrapper. If it cannot 
 
 Cancellation, missing keys, unmatched prices, low confidence, and API failures stop execution explicitly. The extension does not silently substitute another model.
 
-Open **Output -> Jev Router** to inspect the selected model and single-round estimate. Estimates use public default-tier prices and exclude promotions, cached-token discounts, later tool rounds, and JEV fees. They do not guarantee the final bill or free usage. Images and long-context tiers are unsupported, and administrator restrictions on custom providers are respected.
+Open **Output -> Desicion Router** to inspect the selected model and single-round estimate. Estimates use public default-tier prices and exclude promotions, cached-token discounts, later tool rounds, and JEV fees. They do not guarantee the final bill or free usage. Images and long-context tiers are unsupported, and administrator restrictions on custom providers are respected.
 
 ## Route once before launching the CLI
 
@@ -122,7 +122,7 @@ npm start -- --model gpt-6-luna -p "Calculate 2+2" -- --allow-all-tools
 npm start -- -C /path/to/project "Fix the failing tests"
 ```
 
-You can also run `node bin/jev-copilot.mjs`; without arguments, it asks for the initial task. For a global command, run `npm link` in this directory, then use `jev-copilot "task"`.
+You can also run `node bin/jev-copilot.mjs`; without arguments, it asks for the initial task. For a global command, run `npm link` in this directory, then use `desicion-router "task"`. The previous global command remains a compatibility alias. Existing `JEV_*`, TypeSafe, and Azure environment configuration is unchanged.
 
 Place native CLI arguments after `--`, for example `--deny-tool=shell`, `--resume=<session-id>`, or `--max-ai-credits=30` (the current CLI minimum is 30). The launcher **does not grant tool permissions automatically**.
 
@@ -148,7 +148,7 @@ SDK `inputPrice` and `outputPrice` are **AI credits per billing batch**, not dol
 
 For example, an available model priced at **$0.10 per million input tokens** and **$0.50 per million output tokens** has an estimated cost of **$0.002** for 10,000 input and 2,000 output tokens. This is an illustration, not a fixed price or account default; available models and prices are rediscovered at runtime.
 
-Startup routing passes `--context default` unless you explicitly request `--context long_context`. Long-context selection uses that model's long-context prices and excludes models without the tier. Inputs above a default-tier threshold are not silently billed in the estimate at the cheaper rate. The native `Jev Router` picker entry supports default context only and advertises conservative limits of 128,000 input and 16,000 output tokens.
+Startup routing passes `--context default` unless you explicitly request `--context long_context`. Long-context selection uses that model's long-context prices and excludes models without the tier. Inputs above a default-tier threshold are not silently billed in the estimate at the cheaper rate. The native `Desicion Router` picker entry supports default context only and advertises conservative limits of 128,000 input and 16,000 output tokens.
 
 ```bash
 npm start -- route "Your large-context task" \
@@ -183,7 +183,7 @@ This setting applies to startup routing, the native CLI extension, and both edit
 
 CLI precedence is process environment, then the target project's `.env` (selectable with `-C` in startup mode), then the launcher's `.env`. `TYPESAFE_API_KEY` is also accepted.
 
-The editor reads `jevRouter.envFile`, defaulting to the build project's `.env` path. Process environment values override that file. Editor routing measures input tokens and uses `JEV_INPUT_TOKENS` as an estimate floor; estimated output must not exceed 16,000 tokens.
+The editor reads `desicionRouter.envFile`, defaulting to the build project's `.env` path. Process environment values override that file. Editor routing measures input tokens and uses `JEV_INPUT_TOKENS` as an estimate floor; estimated output must not exceed 16,000 tokens.
 
 JEV requests have a four-second client timeout and a five-second cancellation deadline, with no automatic retries. Timeouts, invalid choices, and confidence below 0.3 fail closed. CLI modes can explicitly enable `JEV_FALLBACK_CHEAPEST=1`, which warns and selects the lowest-priced candidate **without guaranteeing task suitability**. Editor routing does not use this fallback and stops on routing failures.
 
@@ -222,4 +222,4 @@ After installing the native extension, run the live integration check if needed:
 npm run test:live-router
 ```
 
-**This calls JEV and GitHub and consumes real usage.** It checks the native model catalog for `Jev Router`, executes two routed turns including a native tool call, then switches to a concrete model to confirm JEV is bypassed. Its temporary project is cleaned up afterward.
+**This calls JEV and GitHub and consumes real usage.** It checks the native model catalog for `Desicion Router`, executes two routed turns including a native tool call, then switches to a concrete model to confirm JEV is bypassed. Its temporary project is cleaned up afterward.

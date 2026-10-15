@@ -9,7 +9,7 @@ import { decisionConfiguration, selectModel } from "./router.mjs";
 export const help = `JEV -> native GitHub Copilot CLI (native /model extension or startup routing)
 
   npm run install:router                Install the user-level /model extension
-  npm run router                        Open native CLI; select Jev Router in /model
+  npm run router                        Open native CLI; select Desicion Router in /model
   npm start -- "task"                    Route, then open native interactive CLI
   npm start -- -p "task" -- [CLI flags]   Route, then run native prompt mode
   npm start -- -i "task"                 Route, then open native interactive CLI
@@ -27,7 +27,7 @@ Options:
   -h, --help              Show help without network calls
 
 Native flags go after --. Permissions remain under native Copilot control.
-The router command enables the user extension; choose Jev Router in /model for per-turn routing.
+The router command enables the user extension; choose Desicion Router in /model for per-turn routing.
 Ordinary task mode routes at startup only. Concrete native models bypass JEV.
 Automatic routing sends the current user task and model prices to TypeSafe/JEV.
 Estimates exclude cache charges, tool loops, JEV fees and subscription allowances.

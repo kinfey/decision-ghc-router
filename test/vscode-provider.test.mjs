@@ -14,7 +14,7 @@ const bundled = await build({
   external: ["vscode", "@typesafe-ai/sdk"],
 });
 
-async function harness(t, providerName = "typesafe") {
+async function harness(t, providerName = "typesafe", legacySetting = false) {
   const directory = await mkdtemp(join(tmpdir(), "jev-editor-test-"));
   t.after(() => rm(directory, { recursive: true }));
   const envFile = join(directory, ".env");
@@ -48,7 +48,9 @@ async function harness(t, providerName = "typesafe") {
     LanguageModelToolResultPart: ToolResultPart, LanguageModelDataPart: DataPart,
     LanguageModelChatMessage: Message, LanguageModelChatMessageRole: { User: 1, Assistant: 2 },
     CancellationError, EventEmitter,
-    workspace: { getConfiguration: () => ({ get: () => envFile }) },
+    workspace: { getConfiguration: (section) => ({
+      get: () => legacySetting && section === "desicionRouter" ? "" : envFile,
+    }) },
     window: { showInputBox: async () => { summarizations++; return "Summarized task"; } },
     lm: { selectChatModels: async () => [
       target,
@@ -159,4 +161,15 @@ test("editor Azure routing delegates to native Copilot and reuses the decision f
   assert.equal(h.decisions.length, 1);
   assert.equal(h.requests.length, 2);
   assert.ok(h.logs.every((line) => !line.includes("azure-fixture-key")));
+});
+
+test("renamed editor model preserves the previous envFile configuration", async (t) => {
+  const h = await harness(t, "azure", true);
+  assert.equal(h.model.id, "desicion-router");
+  assert.equal(h.model.name, "desicion-router");
+  await h.provider.provideLanguageModelChatResponse(h.model, [{
+    role: 1, content: [new h.TextPart("<userRequest>Say hello</userRequest>")],
+  }], {}, { report() {} }, h.token);
+  assert.equal(h.decisions.length, 1);
+  assert.equal(h.requests[0].model, "opaque-cheap");
 });

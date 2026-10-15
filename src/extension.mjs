@@ -12,7 +12,7 @@ export async function startExtension() {
     ],
     hooks: {
       onUserPromptSubmitted: async (input) => {
-        if (!turns) throw new Error("Jev Router is still initializing.");
+        if (!turns) throw new Error("Desicion Router is still initializing.");
         await turns.submitted(input.prompt);
       },
     },
@@ -23,10 +23,10 @@ export async function startExtension() {
     turns = createTurnRouter({ session, env, log });
     proxy = await startProxy({ session, turns, env, log });
     await session.rpc.provider.add(registration(proxy.baseUrl, proxy.apiKey));
-    await log("Jev Router is available in /model. It uses your Copilot account, not a free model: native BYOK cost displays/budgets may not track these GitHub charges. JEV receives each new user task, not the full conversation.", "warning");
+    await log("Desicion Router is available in /model. It uses your Copilot account, not a free model: native BYOK cost displays/budgets may not track these GitHub charges. The decision backend receives each new user task, not the full conversation.", "warning");
   } catch (error) {
     if (proxy) await proxy.close();
-    await log(`Jev Router initialization failed: ${safeError(error, env)}`, "error");
+    await log(`Desicion Router initialization failed: ${safeError(error, env)}`, "error");
     throw error;
   }
   let stopping = false;
