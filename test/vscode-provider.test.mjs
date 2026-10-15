@@ -49,7 +49,7 @@ async function harness(t, providerName = "typesafe", legacySetting = false) {
     LanguageModelChatMessage: Message, LanguageModelChatMessageRole: { User: 1, Assistant: 2 },
     CancellationError, EventEmitter,
     workspace: { getConfiguration: (section) => ({
-      get: () => legacySetting && section === "desicionRouter" ? "" : envFile,
+      get: () => legacySetting ? (section === legacySetting ? envFile : "") : envFile,
     }) },
     window: { showInputBox: async () => { summarizations++; return "Summarized task"; } },
     lm: { selectChatModels: async () => [
@@ -164,12 +164,21 @@ test("editor Azure routing delegates to native Copilot and reuses the decision f
 });
 
 test("renamed editor model preserves the previous envFile configuration", async (t) => {
-  const h = await harness(t, "azure", true);
-  assert.equal(h.model.id, "desicion-router");
-  assert.equal(h.model.name, "desicion-router");
+  const h = await harness(t, "azure", "jevRouter");
+  assert.equal(h.model.id, "decision-router");
+  assert.equal(h.model.name, "decision-router");
   await h.provider.provideLanguageModelChatResponse(h.model, [{
     role: 1, content: [new h.TextPart("<userRequest>Say hello</userRequest>")],
   }], {}, { report() {} }, h.token);
   assert.equal(h.decisions.length, 1);
   assert.equal(h.requests[0].model, "opaque-cheap");
+});
+
+test("corrected editor spelling preserves the misspelled envFile setting", async (t) => {
+  const h = await harness(t, "azure", "desicionRouter");
+  assert.equal(h.model.name, "decision-router");
+  await h.provider.provideLanguageModelChatResponse(h.model, [{
+    role: 1, content: [new h.TextPart("<userRequest>Say hello</userRequest>")],
+  }], {}, { report() {} }, h.token);
+  assert.equal(h.decisions.length, 1);
 });

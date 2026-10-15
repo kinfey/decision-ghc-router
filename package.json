@@ -1,11 +1,16 @@
 {
-  "name": "desicion-router",
+  "name": "decision-router",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Cost-aware JEV model selection for the native GitHub Copilot CLI",
+  "description": "Cost-aware Decision Router for GitHub Copilot CLI and VS Code",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinfey/decision-ghc-router.git"
+  },
+  "homepage": "https://github.com/kinfey/decision-ghc-router",
   "bin": {
-    "desicion-router": "bin/jev-copilot.mjs",
+    "decision-router": "bin/jev-copilot.mjs",
     "jev-copilot": "bin/jev-copilot.mjs"
   },
   "scripts": {
@@ -16,7 +21,7 @@
     "uninstall:router": "node bin/install-router.mjs --uninstall",
     "build:vscode": "node vscode/build.mjs",
     "check:vscode": "tsc --project vscode/tsconfig.json --noEmit",
-    "package:vscode": "npm run build:vscode && cd vscode && vsce package --no-dependencies --allow-missing-repository --skip-license --out ../desicion-router.vsix",
+    "package:vscode": "npm run build:vscode && cd vscode && vsce package --no-dependencies --allow-missing-repository --skip-license --out ../decision-router.vsix",
     "test:live-router": "node test/live-native-router.mjs",
     "test": "node --test test/*.test.mjs"
   },

@@ -1,28 +1,33 @@
 {
-  "name": "desicion-router",
-  "displayName": "Desicion Router",
+  "name": "decision-router",
+  "displayName": "Decision Router",
   "description": "Choose low-cost available GitHub Copilot models through JEV in the native chat model picker.",
   "publisher": "local-jev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinfey/decision-ghc-router.git"
+  },
+  "homepage": "https://github.com/kinfey/decision-ghc-router",
   "version": "0.1.0",
   "private": true,
   "engines": { "vscode": "^1.140.0" },
   "categories": ["AI", "Chat"],
   "main": "./out/extension.cjs",
-  "activationEvents": ["onLanguageModelChatProvider:desicion-router"],
+  "activationEvents": ["onLanguageModelChatProvider:decision-router"],
   "contributes": {
     "languageModelChatProviders": [{
-      "vendor": "desicion-router",
-      "displayName": "Desicion Router",
-      "managementCommand": "desicionRouter.configure"
+      "vendor": "decision-router",
+      "displayName": "Decision Router",
+      "managementCommand": "decisionRouter.configure"
     }],
     "commands": [
-      { "command": "desicionRouter.configure", "title": "Desicion Router: Configure .env" },
-      { "command": "desicionRouter.refresh", "title": "Desicion Router: Refresh Models" }
+      { "command": "decisionRouter.configure", "title": "Decision Router: Configure .env" },
+      { "command": "decisionRouter.refresh", "title": "Decision Router: Refresh Models" }
     ],
     "configuration": {
-      "title": "Desicion Router",
+      "title": "Decision Router",
       "properties": {
-        "desicionRouter.envFile": {
+        "decisionRouter.envFile": {
           "type": "string",
           "default": "",
           "scope": "application",

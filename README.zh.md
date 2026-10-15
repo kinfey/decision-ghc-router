@@ -1,13 +1,15 @@
-# Desicion Router：GitHub Copilot 模型路由
+# Decision Router：GitHub Copilot 模型路由
 
 [English](README.md) | [简体中文](README.zh.md)
 
-**JEV 判断，GitHub Copilot 执行**。支持 CLI 原生 `/model` 菜单中的 **Desicion Router**、VS Code / Insiders 聊天模型菜单中的 **desicion-router**，以及启动前一次性选模。不修改登录凭据或全局默认模型，不额外调用 Copilot 做分类。
+[项目仓库：kinfey/decision-ghc-router](https://github.com/kinfey/decision-ghc-router)
+
+**JEV 判断，GitHub Copilot 执行**。支持 CLI 原生 `/model` 菜单中的 **Decision Router**、VS Code / Insiders 聊天模型菜单中的 **decision-router**，以及启动前一次性选模。不修改登录凭据或全局默认模型，不额外调用 Copilot 做分类。
 
 判断后端同时支持 **TypeSafe API** 和 **Azure Decision-1**。所选后端仅负责选模，任务仍由账号可用的 GitHub Copilot 模型执行。
 
 ```text
-原生 /model -> Desicion Router -> 每个新用户回合调用 JEV
+原生 /model -> Decision Router -> 每个新用户回合调用 JEV
                            -> 本地回环代理 -> 账号允许的 GitHub 推理模型
 原生 /model -> 具体模型   -> 原生 Copilot 直接执行，不调用 JEV
 ```
@@ -28,7 +30,7 @@ chmod 600 .env
 
 不要覆盖已有 `.env`，也不要提交或分享密钥。npm 使用项目 `.npmrc` 中配置的 Microsoft 源 `https://packagefeedproxy.microsoft.io/npm/`。
 
-## 在原生 `/model` 中选择 Desicion Router
+## 在原生 `/model` 中选择 Decision Router
 
 安装用户级扩展（可重复执行）：
 
@@ -39,23 +41,23 @@ npm run install:router
 npm run router
 ```
 
-安装后重启 CLI，并批准工作目录信任及 `user:desicion-router` 的 **register hooks** 权限；未批准时菜单项可能不会加载。进入 CLI 后输入 `/model`，选择 **Desicion Router**。内部模型 ID 是 `desicion/router`，模型显示名是 `Desicion Router`。也可以用原生命令 `/model desicion/router` 选择它。每个新的用户回合会显示实际执行模型，例如：
+安装后重启 CLI，并批准工作目录信任及 `user:decision-router` 的 **register hooks** 权限；未批准时菜单项可能不会加载。进入 CLI 后输入 `/model`，选择 **Decision Router**。内部模型 ID 是 `decision/router`，模型显示名是 `Decision Router`。也可以用原生命令 `/model decision/router` 选择它。每个新的用户回合会显示实际执行模型，例如：
 
 ```text
 JEV -> gpt-6-luna (jev, confidence 0.98); estimated $0.002000.
 ```
 
-扩展安装到 `~/.copilot/extensions/desicion-router/extension.mjs`（如果设置了 `COPILOT_HOME`，则使用该目录）。在**其他项目**运行原生 CLI：
+扩展安装到 `~/.copilot/extensions/decision-router/extension.mjs`（如果设置了 `COPILOT_HOME`，则使用该目录）。在**其他项目**运行原生 CLI：
 
 ```bash
 cd /path/to/project
 COPILOT_ALLOW_GET_PROVIDER_ENDPOINT=true copilot --experimental
-# 然后在 /model 中选择 Desicion Router
+# 然后在 /model 中选择 Decision Router
 ```
 
 `--experimental` 启用原生扩展接口；`COPILOT_ALLOW_GET_PROVIDER_ENDPOINT=true` 显式允许本地代理通过 SDK 获取当前账号的运行时推理端点和认证信息。不修改 shell 启动配置。普通 `copilot` 如果没有开启这些接口，不能假定扩展能加载或执行；端点接口未开启时会明确报错，不偷偷改用别的认证方式。
 
-原生菜单仍保留账号的具体模型：选具体模型暂停 JEV，重新选 `Desicion Router` 恢复。一个回合的工具循环和继承路由器的子代理请求固定使用该回合选择的模型，不重复调用 JEV。子代理明确指定原生模型时仍由原生 CLI 管理。本版本只支持默认上下文档位、文本与原生工具调用，以及 GitHub 目录中支持 `/responses` 的模型；不为图片、Anthropic Messages API 或长上下文伪造兼容能力。
+原生菜单仍保留账号的具体模型：选具体模型暂停 JEV，重新选 `Decision Router` 恢复。一个回合的工具循环和继承路由器的子代理请求固定使用该回合选择的模型，不重复调用 JEV。子代理明确指定原生模型时仍由原生 CLI 管理。本版本只支持默认上下文档位、文本与原生工具调用，以及 GitHub 目录中支持 `/responses` 的模型；不为图片、Anthropic Messages API 或长上下文伪造兼容能力。
 
 代理仅监听 `127.0.0.1` 的随机端口，用随机本地凭据认证；从 SDK 获取的 GitHub 凭据只在内存中用于 HTTPS 请求 GitHub，不保存、不输出、不发送给 JEV，也不把本地代理凭据当作 GitHub 凭据转发。保留原生工具定义、工具结果、流式回复、权限和会话；不额外启动另一个模型代理循环。
 
@@ -73,18 +75,18 @@ npm run package:vscode
 
 # macOS：分别安装到两个编辑器。
 "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" \
-  --install-extension "$PWD/desicion-router.vsix" --force
+  --install-extension "$PWD/decision-router.vsix" --force
 "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/bin/code" \
-  --install-extension "$PWD/desicion-router.vsix" --force
+  --install-extension "$PWD/decision-router.vsix" --force
 ```
 
-在两个编辑器分别运行 **Developer: Reload Window**，然后在聊天模型菜单选择 **desicion-router**。如果未显示，在 **Manage Models** 中启用 **Desicion Router / desicion-router**。运行 **Desicion Router: Configure .env** 可选择存放 TypeSafe 或 Azure 密钥的本地文件；设置只保存路径，不保存密钥，并兼容旧的 `.env` 路径设置。本地构建默认使用本项目的 `.env`，VSIX 不包含此文件，移动目录后须重新配置路径。升级时，在安装新名称的扩展后卸载旧编辑器扩展，以免出现重复模型项。
+在两个编辑器分别运行 **Developer: Reload Window**，然后在聊天模型菜单选择 **decision-router**。如果未显示，在 **Manage Models** 中启用 **Decision Router / decision-router**。运行 **Decision Router: Configure .env** 可选择存放 TypeSafe 或 Azure 密钥的本地文件；设置只保存路径，不保存密钥，并兼容旧的 `.env` 路径设置。本地构建默认使用本项目的 `.env`，VSIX 不包含此文件，移动目录后须重新配置路径。升级时，在安装新名称的扩展后卸载旧编辑器扩展，以免出现重复模型项。
 
 执行时，按编辑器提示批准 Copilot 语言模型访问权限。候选模型来自该编辑器登录账号的 `vscode.lm.selectChatModels({ vendor: "copilot" })`，不假定 CLI 与编辑器使用相同账号。通过精确名称匹配当前 GitHub 官方默认档价格，排除价格未知及实测输入超过默认档上下文的模型；输出估算默认 2,000 token，可通过 `.env` 中 `JEV_OUTPUT_TOKENS` 调整。公开 API 不暴露各模型输出上限，因此估算不是输出长度承诺，最终请求限制由具体模型执行。
 
 JEV 只接收明确 `<userRequest>` 包装中的任务；无法从编辑器附加上下文中可靠提取任务时，会询问一个**只用于选模的摘要**，不自动上传附件、源码或完整对话。Copilot 收到完整对话及工具定义，编辑器继续执行原生工具；按工具调用 ID 固定后续模型，工具轮次不重复选模。取消、缺失密钥、无匹配价格、低置信度及 API 失败都会明确停止，不静默更换模型。
 
-在 **Output → Desicion Router** 查看实际选择的模型及单轮估价。该估价使用公开默认档单价，不包含促销、缓存优惠、后续工具轮次及 JEV 费用，不保证实际账单或显示为免费。此版本不支持图片或长上下文档位，且尊重组织对自定义模型提供方的限制。
+在 **Output → Decision Router** 查看实际选择的模型及单轮估价。该估价使用公开默认档单价，不包含促销、缓存优惠、后续工具轮次及 JEV 费用，不保证实际账单或显示为免费。此版本不支持图片或长上下文档位，且尊重组织对自定义模型提供方的限制。
 
 ## 启动前一次性选模
 
@@ -110,7 +112,7 @@ npm start -- --model gpt-6-luna -p "计算 2+2" -- --allow-all-tools
 npm start -- -C /path/to/project "修复失败的测试"
 ```
 
-也可执行 `node bin/jev-copilot.mjs`；无参数运行时会询问初始任务。需要全局命令时在本目录执行 `npm link`，之后使用 `desicion-router "任务"`。旧全局命令保留为兼容别名，现有 `JEV_*`、TypeSafe 及 Azure 环境配置保持不变。
+也可执行 `node bin/jev-copilot.mjs`；无参数运行时会询问初始任务。需要全局命令时在本目录执行 `npm link`，之后使用 `decision-router "任务"`。旧全局命令保留为兼容别名，现有 `JEV_*`、TypeSafe 及 Azure 环境配置保持不变。
 
 原生 CLI 参数放在 `--` 后，例如 `--deny-tool=shell`、`--resume=<session-id>`、`--max-ai-credits=30`（当前 CLI 最小值为 30）。启动器**不会自动授予工具权限**。`--model`、`--context`、`-p`、`-i`、`-C` 必须使用启动器选项，不能放在透传区域；不支持绕过路由的 `--agent`、`--fleet`、`--connect`、`--acp`。
 
@@ -132,14 +134,14 @@ CLI 模式的价格依据 [GitHub 模型计费文档](https://docs.github.com/en
 
 价格示例：假设某个可用模型的默认档输入价格为 **$0.10 / 百万 token**、输出价格为 **$0.50 / 百万 token**，则 10,000 输入 + 2,000 输出的估价为 **$0.002**。这不是固定价格或账号默认模型；运行时始终重新发现可用模型和价格。
 
-启动前模式默认传递 `--context default`，不自动开启长上下文；显式使用 `--context long_context` 时，使用该模型长上下文价格并过滤不支持该档位的模型。估算输入超过默认档阈值时，不会悄悄按便宜档计价。`Desicion Router` 原生菜单项当前不支持长上下文，统一发布 128,000 输入 / 16,000 输出的保守上限。
+启动前模式默认传递 `--context default`，不自动开启长上下文；显式使用 `--context long_context` 时，使用该模型长上下文价格并过滤不支持该档位的模型。估算输入超过默认档阈值时，不会悄悄按便宜档计价。`Decision Router` 原生菜单项当前不支持长上下文，统一发布 128,000 输入 / 16,000 输出的保守上限。
 
 ```bash
 npm start -- route "你的大上下文任务" \
   --input-tokens 300000 --output-tokens 4000 --context long_context
 ```
 
-这些 token 数是**用户估算**，不是 tokenizer 测量或实际限制。选模逻辑不读取仓库内容、附件或已有会话上下文，因此恢复会话时应自行提供合理估算。原生 CLI 的 `--max-ai-credits` 不是严格的账单上限，尤其不能依赖它约束 `Desicion Router` 自定义 provider 的真实费用。
+这些 token 数是**用户估算**，不是 tokenizer 测量或实际限制。选模逻辑不读取仓库内容、附件或已有会话上下文，因此恢复会话时应自行提供合理估算。原生 CLI 的 `--max-ai-credits` 不是严格的账单上限，尤其不能依赖它约束 `Decision Router` 自定义 provider 的真实费用。
 
 ## `.env`
 
@@ -165,7 +167,7 @@ AZURE_DECISION_MODEL=Decision-1
 
 该配置同时适用于启动前选模、CLI 原生菜单扩展和两个编辑器扩展。更新已安装扩展后，请重启 CLI 或重新加载编辑器窗口。Azure 判断服务与 Copilot 执行分别计费，TypeSafe 判断服务亦如此。
 
-CLI 优先级：进程环境变量 > 目标项目的 `.env`（启动前模式可通过 `-C` 指定）> 启动器目录的 `.env`。同时兼容 `TYPESAFE_API_KEY`。编辑器读取 `desicionRouter.envFile` 指定的文件，未配置时使用构建项目的 `.env` 路径；进程环境变量优先于该文件。编辑器模式会统计输入 token，并将 `JEV_INPUT_TOKENS` 用作估算下限，输出估算不得超过 16,000 token。
+CLI 优先级：进程环境变量 > 目标项目的 `.env`（启动前模式可通过 `-C` 指定）> 启动器目录的 `.env`。同时兼容 `TYPESAFE_API_KEY`。编辑器读取 `decisionRouter.envFile` 指定的文件，未配置时使用构建项目的 `.env` 路径；进程环境变量优先于该文件。编辑器模式会统计输入 token，并将 `JEV_INPUT_TOKENS` 用作估算下限，输出估算不得超过 16,000 token。
 
 JEV 单次请求超时 4 秒，总取消信号 5 秒，不自动重试，避免重复费用。超时、无效选择或置信度低于 0.3 时默认报错退出，不擅自启动高价模型。CLI 模式可显式设置 `JEV_FALLBACK_CHEAPEST=1`：此时会发出警告并使用最低估算价模型，但**不保证能胜任任务**。编辑器模式不使用此降级选项，路由失败时停止执行。
 
@@ -173,7 +175,7 @@ JEV 单次请求超时 4 秒，总取消信号 5 秒，不自动重试，避免�
 
 ## 边界
 
-原生菜单模式是真实注册的 `Desicion Router` 提供方，按新用户回合路由；启动前模式仍然只在启动时路由一次，后续不自动重新判断。手动切换到具体模型后，之前的估算不再代表新模型费用。
+原生菜单模式是真实注册的 `Decision Router` 提供方，按新用户回合路由；启动前模式仍然只在启动时路由一次，后续不自动重新判断。手动切换到具体模型后，之前的估算不再代表新模型费用。
 
 CLI 自动路由会向所选判断后端发送当前用户回合的原始任务文本、候选模型名称/价格及 token 估算：TypeSafe 使用 `https://api.typesafe.ai`，Azure 使用配置的端点。不自动读取并发送仓库文件或完整历史，也不发送 GitHub 凭据；若任务自身包含敏感内容，这些内容也会发送。CLI 原生菜单模式通过本地代理将完整模型请求发送给 SDK 指定的 GitHub 推理端点。编辑器模式通过公开 Copilot 语言模型 API 执行，向判断后端发送可提取的任务或用户明确输入的摘要。`route` 同样会调用判断服务，可能产生费用；`models` 和手动选择具体模型不调用判断服务。
 
@@ -198,4 +200,4 @@ npm run build:vscode
 npm run test:live-router
 ```
 
-它在临时项目中确认真实菜单目录包含 `Desicion Router`，切换到路由器执行两个回合（含一次原生工具调用），再切换到具体模型确认 JEV 暂停，结束后清理临时目录。
+它在临时项目中确认真实菜单目录包含 `Decision Router`，切换到路由器执行两个回合（含一次原生工具调用），再切换到具体模型确认 JEV 暂停，结束后清理临时目录。

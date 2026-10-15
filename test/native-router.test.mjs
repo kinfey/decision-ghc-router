@@ -59,7 +59,7 @@ test("raw session catalog and normalized SDK catalog use identical pricing units
 
 test("registered model has the exact native display name and provider-qualified selection ID", () => {
   const entry = registration("http://127.0.0.1:9999/v1", "local-token");
-  assert.equal(entry.models[0].name, "Desicion Router");
+  assert.equal(entry.models[0].name, "Decision Router");
   assert.equal(`${entry.models[0].provider}/${entry.models[0].id}`, routerId);
   assert.equal(entry.providers[0].wireApi, "responses");
   assert.equal(entry.providers[0].apiKey, "local-token");
@@ -114,7 +114,7 @@ test("routing errors are visible and block inference even if the host treats hoo
 
 test("wire rewriting preserves all native tools, context and sampling parameters", () => {
   const body = {
-    model: "desicion-router", input: [{ role: "user", content: "task" }, { type: "function_call_output", output: "done", call_id: "1" }],
+    model: "decision-router", input: [{ role: "user", content: "task" }, { type: "function_call_output", output: "done", call_id: "1" }],
     tools: [{ type: "function", name: "native_tool", parameters: { type: "object" } }],
     stream: true, max_output_tokens: 1000, reasoning: { effort: "low" },
   };
@@ -124,7 +124,7 @@ test("wire rewriting preserves all native tools, context and sampling parameters
   assert.strictEqual(rewritten.tools, body.tools);
   assert.strictEqual(rewritten.input, body.input);
   assert.deepEqual(rewritten.reasoning, { effort: "low" });
-  assert.equal(body.model, "desicion-router");
+  assert.equal(body.model, "decision-router");
   assert.equal(rewriteRequest(body, { id: "cheap" }, {
     capabilities: { supports: { reasoningEffort: false } },
   }).reasoning, undefined);
@@ -147,7 +147,7 @@ test("loopback proxy authenticates, forwards SSE and uses only runtime GitHub cr
     },
   });
   t.after(() => proxy.close());
-  const payload = { model: "desicion-router", input: "task", stream: true };
+  const payload = { model: "decision-router", input: "task", stream: true };
   const post = (authorization, body = JSON.stringify(payload)) => fetch(`${proxy.baseUrl}/responses`, {
     method: "POST", headers: { authorization, "content-type": "application/json" }, body,
   });
@@ -180,7 +180,7 @@ test("proxy reports upstream HTTP failures without forwarding credential-bearing
   t.after(() => proxy.close());
   const response = await fetch(`${proxy.baseUrl}/responses`, {
     method: "POST", headers: { authorization: `Bearer ${proxy.apiKey}` },
-    body: JSON.stringify({ model: "desicion-router" }),
+    body: JSON.stringify({ model: "decision-router" }),
   });
   assert.equal(response.status, 502);
   const text = await response.text();
@@ -205,7 +205,7 @@ test("unsupported backend protocols, transport and insecure endpoints fail befor
     try {
       const response = await fetch(`${proxy.baseUrl}/responses`, {
         method: "POST", headers: { authorization: `Bearer ${proxy.apiKey}` },
-        body: JSON.stringify({ model: "desicion-router" }),
+        body: JSON.stringify({ model: "decision-router" }),
       });
       assert.equal(response.status, 502);
       await response.body.cancel();

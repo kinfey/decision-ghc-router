@@ -3,13 +3,13 @@ const fs = require("node:fs");
 const vscode = require("vscode");
 
 exports.run = async function () {
-  const extension = vscode.extensions.getExtension("local-jev.desicion-router");
-  assert.ok(extension, "Desicion Router extension is present");
+  const extension = vscode.extensions.getExtension("local-jev.decision-router");
+  assert.ok(extension, "Decision Router extension is present");
   const { provider } = await extension.activate();
-  const models = await vscode.lm.selectChatModels({ vendor: "desicion-router" });
+  const models = await vscode.lm.selectChatModels({ vendor: "decision-router" });
   assert.equal(models.length, 1, "native model registry contains the router");
-  assert.equal(models[0].name, "desicion-router");
-  assert.equal(models[0].vendor, "desicion-router");
+  assert.equal(models[0].name, "decision-router");
+  assert.equal(models[0].vendor, "decision-router");
   const information = provider.provideLanguageModelChatInformation()[0];
   const cancellation = new vscode.CancellationTokenSource();
   assert.equal(await provider.provideTokenCount(information, "abc", cancellation.token), 3);

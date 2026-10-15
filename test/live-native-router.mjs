@@ -46,7 +46,7 @@ try {
     if (picker) break;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  assert.equal(picker?.name, "Desicion Router");
+  assert.equal(picker?.name, "Decision Router");
   await session.setModel(routerId);
   const first = await session.sendAndWait({
     prompt: "Return only the result of 2 + 2. Do not use tools or read files.",
